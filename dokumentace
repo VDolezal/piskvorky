@@ -1,0 +1,52 @@
+# Zadaní práce
+Úkolem je vytvořit hru **piškvorky** na velké hrací ploše.  
+Cílem bylo vytvořit jednoduchou umělou inteligenci, proti které může hráč hrát, a jednoduché grafické rozhraní.  
+Nejde tedy moc o vzhled hry jako takový, ale spíše o její **použitelnost**.
+
+---
+
+# Uživatelská příručka
+1. Program otevřete v editoru Python kódu a spusťte kód.  
+2. Otevře se vám hrací okno.  
+   - Kliknutím levým tlačítkem umístíte **křížek** na hrací plochu.  
+   - Automaticky se střídají vaše tahy a tahy počítače.  
+3. Hra se automaticky ukončí po výhře či remíze.  
+4. Pro novou hru je potřeba okno zavřít a znovu spustit program.
+
+---
+
+# Technická část
+- V programu jsou použity dvě knihovny: **tkinter** a **random**.  
+  - `tkinter` je využit pro vytvoření prostředí.  
+
+- Na začátku programu byla vytvořena **třída `hra`**, v níž jsou zahrnuty všechny funkce tvořící celou hru.  
+
+### Postup implementace:
+1. **Grafické prostředí**  
+   - Vytvořeno pomocí knihovny `tkinter`.
+
+2. **Funkce pro vkládání symbolů**  
+   - Využívá mnoho příkazů z knihovny `tkinter`.  
+   - Zároveň kontroluje stav hry.  
+
+3. **Funkce pro kontrolu stavu hry**  
+   - Pro zvolené pole projde všechny směry a pamatuje si počet symbolů v řadě.  
+   - K tomu je využit **seznam seznamů**.  
+
+4. **Tah počítače**  
+   - Počítač nejprve projde všechna pole a pomocí funkce `kontrola` zjistí, zda:  
+     - nemůže vyhrát, nebo  
+     - nemůže prohrát.  
+   - Pokud ano, položí symbol podle potřeby.  
+   - Pokud ne, použije **MinMax algoritmus**, který:  
+     - projde celé pole,  
+     - nasimuluje dvě kola dopředu (lze i více, ale při větším počtu rekurzí se hra občas zasekne),  
+     - určí počet bodů pro dané políčko.  
+   - Vybere políčko s nejvíce body.  
+   - Pokud všechna políčka dostanou **0 bodů**, zvolí políčko tak, aby měl co nejvíce symbolů v řadě (využívá znovu funkci `kontrola`).  
+
+5. **Pomocné funkce**  
+   - Procházejí pole a zjišťují aktuální stav hry.  
+
+6. **Spuštění hry**  
+   - Poslední tři řádky kódu slouží pouze ke spuštění hry.
