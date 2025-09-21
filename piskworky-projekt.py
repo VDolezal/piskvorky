@@ -53,7 +53,7 @@ class hra:
         smery=[[1,0], [0,1], [1,1], [1,-1]]         #funkce kontroluje všechny směry od zadaného čtverce a počítá počet symbolů v řadě
         r = radek
         s = sloupec                 #parametr"pocet_vedlejsich_symbolu" vrací nejvetší počet symbolů v řadě pro dané políčko
-    
+        nej_pocet = 0
         for smer in smery:
             pocet = 1
             while 0 <=radek + smer[0] < velikost_pole and 0 <= sloupec + smer[1] < velikost_pole and self.mrizka[radek + smer[0]][sloupec + smer[1]] == symbol:
@@ -66,11 +66,13 @@ class hra:
                 radek = radek - smer[0]
                 sloupec = sloupec - smer[1]
                 pocet += 1
-               
+              
             if pocet >= pocet_symbolu_k_vyhre:
                 return True
+            if pocet > nej_pocet:
+                nej_pocet = pocet
         if pocet_vedlejsich_symbolu:
-            return pocet
+            return nej_pocet
         else:
             return False
     def protihrac(self):                      #nastavení hry počítače
@@ -84,7 +86,11 @@ class hra:
                 for s in range(velikost_pole):
                     if self.mrizka[r][s]=="X":
                         tahy = [[1,0],[0,1],[1,1],[-1,-1],[1,-1],[-1,1],[-1,0],[0,-1]]
-                        tah = random.choice(tahy)
+                        mozne_tahy=[]
+                        for tah in tahy:
+                            if velikost_pole > r + tah[0] >=0 and velikost_pole > tah[1] + s >=0:
+                                mozne_tahy.append(tah)
+                        tah = random.choice(mozne_tahy)
                         r = r + tah[0]
                         s = s + tah[1]
                         self.mrizka[r][s] = "O"
@@ -106,7 +112,17 @@ class hra:
             for s in range(velikost_pole):      #tuto řadu zkazit
                 if self.mrizka[r][s] == "":
                     self.mrizka[r][s] = "X"
-                    if self.kontrola(r,s,"X",4) or self.kontrola(r,s,"X",5):
+                    if self.kontrola(r,s,"X",5):
+                        self.kresleni_symbol(r,s,"O")
+                        self.mrizka[r][s] = "O"
+                        return
+                    self.mrizka[r][s] = ""
+        
+        for r in range(velikost_pole):          #zde se kontroluje zda hráč nemá v řadě 3 a víc symbolů, pokud ano, počítač se pokusí
+            for s in range(velikost_pole):      #tuto řadu zkazit
+                if self.mrizka[r][s] == "":
+                    self.mrizka[r][s] = "X"
+                    if self.kontrola(r,s,"X",4):
                         self.kresleni_symbol(r,s,"O")
                         self.mrizka[r][s] = "O"
                         return
@@ -122,15 +138,15 @@ class hra:
                 if self.mrizka[r][s] == "":
                     if self.kontrola_okoli(r,s):        #nemá cenu vyhnocovat políčka co jsou daleko od symbolu
                         self.mrizka[r][s] = "O"
-                        skore1, skore2 = self.min_max(False,3 ,"X",r,s)
+                        skore1, skore2 = self.min_max(False,2 ,"X",r,s)
                         self.mrizka[r][s] = ""
                         if skore1 > nej_skore1:
-                            nej_skore = skore1
+                            nej_skore1 = skore1
                             nejlepsi_tah1 = (r,s)
                         if skore2 > nej_skore2:
-                            nej_skore = skore1
+                            nej_skore2 = skore2
                             nejlepsi_tah2 = (r,s)
-
+        
         if nej_skore1 == 0:                
             r,s = nejlepsi_tah2
             self.kresleni_symbol(r,s,"O")
@@ -146,10 +162,11 @@ class hra:
         elif self.kontrola(r,s,symbol,5) and symbol == "X":
             return -10,-float("inf")
         elif hloubka == 0 or self.plna_mrizka():
-            return 0, self.kontrola(r,s,symbol,5,True)
+            return 0, self.kontrola(r,s,"O",5,True)
         
         if max_hrac:
-            max_skore = -float("inf")
+            max_skore1 = -float("inf")
+            max_skore2 = 0
             for r in range(velikost_pole):
                 for s in range(velikost_pole):
                     if self.mrizka[r][s] == "":
@@ -157,10 +174,12 @@ class hra:
                             self.mrizka[r][s] = symbol
                             skore1,skore2 = self.min_max(False,hloubka - 1,"O",r,s)
                             self.mrizka[r][s] = ""
-                            max_skore = max(max_skore,skore1)
-            return max_skore,0
+                            max_skore1 = max(max_skore1,skore1)
+                            max_skore2 = max(max_skore2,skore2)
+            return max_skore1,max_skore2
         else: 
-            min_skore = float("inf")
+            min_skore1 = float("inf")
+            min_skore2 = 0
             for r in range(velikost_pole):
                 for s in range(velikost_pole):
                     if self.mrizka[r][s] == "":
@@ -168,8 +187,10 @@ class hra:
                             self.mrizka[r][s] = symbol
                             skore1, skore2 = self.min_max(True,hloubka - 1,"X",r,s)
                             self.mrizka[r][s] = ""
-                            min_skore = min(min_skore,skore2)
-            return min_skore,0
+                            min_skore1 = min(min_skore1,skore1)
+                            min_skore2 = max(min_skore2,skore2)
+
+            return min_skore1,min_skore2
 
 
     def plna_mrizka(self):          #jednoduchá funkce pro kontrolu, zda je mřížka plná
@@ -198,15 +219,4 @@ class hra:
         
 okno = tkinter.Tk()
 game = hra(okno)
-okno.mainloop()      
-        
-
-
-
-
-
-
-
-
-        
-
+okno.mainloop() 
